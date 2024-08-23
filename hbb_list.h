@@ -66,7 +66,7 @@ void hbb_list_append(hbb_node **l, void *el, size_t el_size)
 
 void hbb_list_print(hbb_node *l, void (*print_func)(void *))
 {
-	while(l != NULL) {
+	while (l) {
 		print_func(l->el);
 		l = l->next;
 	}
@@ -91,7 +91,8 @@ void hbb_free_node(hbb_node *n)
 void hbb_list_free(hbb_node *l)
 {
 	hbb_node *cur;
-	while (l != NULL) {
+
+	while (l) {
 		cur = l;
 		l = l->next;
 		hbb_free_node(cur);
