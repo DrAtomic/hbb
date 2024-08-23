@@ -55,17 +55,13 @@ void hbb_list_push(hbb_node **l, void *el, size_t el_size)
 
 void hbb_list_append(hbb_node **l, void *el, size_t el_size)
 {
-	if ((*l) == NULL) {
-		hbb_list_push(l, el, el_size);
-		return;
-	}
-
 	hbb_node *node = create_node(el, el_size);
-	hbb_node *cur = *l;
+	hbb_node **cur = l;
 
-	while (cur->next != NULL)
-		cur = cur->next;
-	cur->next = node;
+	while (*cur)
+		cur = &(*cur)->next;
+
+	(*cur) = node;
 }
 
 void hbb_list_print(hbb_node *l, void (*print_func)(void *))
