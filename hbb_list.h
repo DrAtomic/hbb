@@ -12,8 +12,25 @@ typedef struct hbb_node {
 
 void hbb_list_push(hbb_node **l, void *el, size_t el_size);
 void hbb_list_append(hbb_node **l, void *el, size_t el_size);
+hbb_node *hbb_list_pop(hbb_node **l);
 void hbb_list_print(hbb_node *l, void (*print_func)(void *));
+void hbb_free_node(hbb_node *n);
 void hbb_list_free(hbb_node *l);
+
+#define hbb_list_remove(l, data, type)				\
+do {								\
+	hbb_node **cur = l, *del;				\
+								\
+	while (*cur && *(type *)(*cur)->el != *(type *)data)	\
+		cur = &(*cur)->next;				\
+								\
+	if (*cur) {						\
+		del = *cur;					\
+		*cur = del->next;				\
+		del->next = NULL;				\
+		hbb_free_node(del);				\
+	}							\
+} while(0)
 
 #ifdef HBB_LIST_IMPLEMENTATION
 
@@ -38,16 +55,17 @@ void hbb_list_push(hbb_node **l, void *el, size_t el_size)
 
 void hbb_list_append(hbb_node **l, void *el, size_t el_size)
 {
-	hbb_node *node = create_node(el, el_size);
-
-	if (*l == NULL) {
-		*l = node;
+	if ((*l) == NULL) {
+		hbb_list_push(l, el, el_size);
 		return;
 	}
 
-	while ((*l)->next != NULL)
-		(*l) = (*l)->next;
-	(*l)->next = node;
+	hbb_node *node = create_node(el, el_size);
+	hbb_node *cur = *l;
+
+	while (cur->next != NULL)
+		cur = cur->next;
+	cur->next = node;
 }
 
 void hbb_list_print(hbb_node *l, void (*print_func)(void *))
@@ -58,14 +76,29 @@ void hbb_list_print(hbb_node *l, void (*print_func)(void *))
 	}
 }
 
+hbb_node *hbb_list_pop(hbb_node **l)
+{
+	hbb_node *head = (*l);
+	if (head) {
+		(*l) = head->next;
+		head->next = NULL;
+	}
+	return head;
+}
+
+void hbb_free_node(hbb_node *n)
+{
+	free(n->el);
+	free(n);
+}
+
 void hbb_list_free(hbb_node *l)
 {
 	hbb_node *cur;
 	while (l != NULL) {
 		cur = l;
 		l = l->next;
-		free(cur->el);
-		free(cur);
+		hbb_free_node(cur);
 	}
 }
 
