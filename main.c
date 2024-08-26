@@ -11,6 +11,10 @@
 #define HBB_TREE_RECURSIVE
 #include "hbb_tree.h"
 
+#define HBB_RBTREE_IMPLEMENTATION
+#include "hbb_rbtree.h"
+
+
 #include <stdio.h>
 
 hbb_node *create_persistant_list()
@@ -71,6 +75,28 @@ void hbb_tree_print(hbb_tree_node *t, size_t level)
 	printf("done\n");
 }
 
+void hbb_rbtree_print(hbb_rbtree_node *t, size_t level)
+{
+	if (t == NULL) {
+		print_tabs(level);
+		printf("---empty---\n");
+		return;
+	}
+	print_tabs(level);
+	printf("value = %d\n", *(int*)t->el);
+	print_tabs(level);
+	printf("color = %s\n", t->color ? "RED" : "BLACK");
+	print_tabs(level);
+	printf("left\n");
+
+	hbb_rbtree_print(t->left, level+1);
+	print_tabs(level);
+	printf("right\n");
+
+	hbb_rbtree_print(t->right, level+1);
+	print_tabs(level);
+	printf("done\n");
+}
 
 int main(void)
 {
@@ -95,7 +121,7 @@ int main(void)
 	hbb_list_free(l);
 
 	// tree testing
-		hbb_tree_node *t = {0};
+	hbb_tree_node *t = {0};
 
 	int a = 15;
 	int b = 11;
@@ -124,5 +150,29 @@ int main(void)
 		printf("did find number!\n");
 	hbb_tree_print(t, 0);
 	hbb_tree_free(t);
+
+	int a_val = 12;
+	// a children
+	int b_val = 8;
+	int c_val = 15;
+
+	// b children
+	int d_val = 5;
+	int e_val = 9;
+
+	// c childred
+	int f_val = 13;
+	int g_val = 19;
+	hbb_rbtree_node *rbt = {0};
+
+	hbb_rbtree_insert(&rbt, &a_val, sizeof(int), compare_int);
+	hbb_rbtree_insert(&rbt, &b_val, sizeof(int), compare_int);
+	hbb_rbtree_insert(&rbt, &c_val, sizeof(int), compare_int);
+	hbb_rbtree_insert(&rbt, &d_val, sizeof(int), compare_int);
+	hbb_rbtree_insert(&rbt, &e_val, sizeof(int), compare_int);
+	hbb_rbtree_insert(&rbt, &f_val, sizeof(int), compare_int);
+	hbb_rbtree_insert(&rbt, &g_val, sizeof(int), compare_int);
+	hbb_rbtree_print(rbt, 0);
+	hbb_rbtree_free(rbt);
 	return 0;
 }
