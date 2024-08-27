@@ -91,7 +91,10 @@ void hbb_rbtree_print(hbb_rbtree_node *t, size_t level)
 	printf("done\n");
 }
 
+
 #define NUM_ELMS(x) (sizeof(x) / sizeof(x[0]))
+
+
 
 int main(void)
 {
@@ -116,36 +119,23 @@ int main(void)
 	// hbb_list_free(l);
 
 	// tree testing
-	hbb_tree_node *t = {0};
+	hbb_tree_traverser *t = hbb_tree_create(compare_int, sizeof(int));
 
-	int a = 12;
-	int b = 18;
-	int c = 5;
-	int d = 2;
-	int e = 9;
-	int f = 15;
-	int g = 19;
-	int h = 17;
+	int arr[] = {12, 18, 5, 2 ,9, 15, 19, 17};
 
-	hbb_tree_insert(&t, &a, sizeof(int), compare_int);
-	hbb_tree_insert(&t, &b, sizeof(int), compare_int);
-	hbb_tree_insert(&t, &c, sizeof(int), compare_int);
-	hbb_tree_insert(&t, &d, sizeof(int), compare_int);
-	hbb_tree_insert(&t, &e, sizeof(int), compare_int);
-	hbb_tree_insert(&t, &f, sizeof(int), compare_int);
-	hbb_tree_insert(&t, &g, sizeof(int), compare_int);
-	hbb_tree_insert(&t, &h, sizeof(int), compare_int);
+	for (size_t i = 0; i < NUM_ELMS(arr); i++)
+		hbb_tree_insert(t, &arr[i]);
 
-	hbb_tree_delete(t, &b, sizeof(int), compare_int);
-	if (hbb_tree_find_number(t, &a, compare_int))
+	hbb_tree_delete(t, &arr[1]);
+	if (hbb_tree_find_number(t, &arr[0]))
 		printf("did find number!\n");
-	if (hbb_tree_find_number(t, &d, compare_int))
-		printf("did find number!\n");
-	if (hbb_tree_find_number(t, &c, compare_int))
-		printf("did find number!\n");
-	if (hbb_tree_find_number(t, &h, compare_int))
-		printf("did find number!\n");
-	hbb_tree_print(t, 0);
+	// if (hbb_tree_find_number(t, &d))
+	// 	printf("did find number!\n");
+	// if (hbb_tree_find_number(t, &c))
+	// 	printf("did find number!\n");
+	// if (hbb_tree_find_number(t, &h))
+	// 	printf("did find number!\n");
+	hbb_tree_print(t->root, 0);
 	hbb_tree_free(t);
 
 	// int arr[] = {12, 8, 15, 5, 9, 13, 19, 8, 11};

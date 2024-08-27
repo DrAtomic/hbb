@@ -5,16 +5,25 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef int (*compare_func)(void *, void *);
+
 typedef struct hbb_tree_node {
 	void *el;
 	struct hbb_tree_node *left;
 	struct hbb_tree_node *right;
 } hbb_tree_node;
 
-void hbb_tree_insert(hbb_tree_node **t, void *el, size_t el_size, int (*compare_func)(void *, void *));
-int hbb_tree_find_number(hbb_tree_node *t, void *el, int (*compare_func)(void *, void *));
-void hbb_tree_delete(hbb_tree_node *t, void *el, size_t el_size, int (*compare_func)(void *, void *));
-void hbb_tree_free(hbb_tree_node *t);
+typedef struct hbb_tree_traverser {
+	hbb_tree_node *root;
+	compare_func compare;
+	size_t el_size;
+} hbb_tree_traverser;
+
+hbb_tree_traverser *hbb_tree_create(compare_func compare, size_t el_size);
+void hbb_tree_insert(hbb_tree_traverser *t, void *el);
+int hbb_tree_find_number(hbb_tree_traverser *t, void *el);
+void hbb_tree_delete(hbb_tree_traverser *t, void *el);
+void hbb_tree_free(hbb_tree_traverser *t);
 
 #ifdef HBB_TREE_IMPLEMENTATION
 
@@ -40,39 +49,49 @@ static void hbb_tree_free_node(hbb_tree_node *n)
 	free(n);
 }
 
-void hbb_tree_delete(hbb_tree_node *t, void *el, size_t el_size, int (*compare_func)(void *, void *))
+hbb_tree_traverser *hbb_tree_create(compare_func compare, size_t el_size)
+{
+	hbb_tree_traverser *t = malloc(sizeof(hbb_tree_traverser));
+	t->compare = compare;
+	t->el_size = el_size;
+	t->root = NULL;
+	return t;
+}
+
+void hbb_tree_delete(hbb_tree_traverser *t, void *el)
 {
 	hbb_tree_node *parent = NULL;
-	while (t && compare_func(el, t->el) != 0) {
-		parent = t;
-		if (compare_func(el, t->el) < 0)
-			t = t->left;
+	hbb_tree_node *cur = t->root;
+	while (cur && t->compare(el, cur->el) != 0) {
+		parent = cur;
+		if (t->compare(el, cur->el) < 0)
+			cur = cur->left;
 		else
-			t = t->right;
+			cur = cur->right;
 	}
 
-	if (t == NULL)
+	if (cur == NULL)
 		return;
 
 	// 0 or 1 child case
-	if (t->left == NULL || t->right == NULL) {
+	if (cur->left == NULL || cur->right == NULL) {
 		hbb_tree_node *new_child = NULL;
-		if (t->left == NULL)
-			new_child = t->right;
+		if (cur->left == NULL)
+			new_child = cur->right;
 		else
-			new_child = t->left;
+			new_child = cur->left;
 
 		if (parent == NULL)
 			return;
 
-		if (t == parent->left)
+		if (cur == parent->left)
 			parent->left = new_child;
 		else
 			parent->right = new_child;
-		hbb_tree_free_node(t);
+		hbb_tree_free_node(cur);
 	} else {
 		hbb_tree_node *parent = NULL;
-		hbb_tree_node *del = t->right;
+		hbb_tree_node *del = cur->right;
 		while(del->left) {
 			parent = del;
 			del = del->left;
@@ -80,68 +99,21 @@ void hbb_tree_delete(hbb_tree_node *t, void *el, size_t el_size, int (*compare_f
 		if (parent)
 			parent->left = del->right;
 		else
-			t->right = del->right;
-		memcpy(t->el, del->el, el_size);
+			cur->right = del->right;
+		memcpy(cur->el, del->el, t->el_size);
 		hbb_tree_free_node(del);
 	}
 }
 
-#ifdef HBB_TREE_RECURSIVE
-void hbb_tree_insert(hbb_tree_node **t, void *el, size_t el_size, int (*compare_func)(void *, void *))
+int hbb_tree_find_number(hbb_tree_traverser *t, void *el)
 {
-	hbb_tree_node *root = *t;
-
-	if (root == NULL) {
-		hbb_tree_node *node = create_tree_node(el, el_size);
-		*t = node;
-		return;
-	}
-
-	if (compare_func(el, (*t)->el) < 0) {
-		hbb_tree_insert(&(root->left), el, el_size, compare_func);
-		return;
-	} else if (compare_func(el, (*t)->el) > 0) {
-		hbb_tree_insert(&(root->right), el, el_size, compare_func);
-		return;
-	} else {
-		return;
-	}
-}
-
-int hbb_tree_find_number(hbb_tree_node *t, void *el, int (*compare_func)(void *, void *))
-{
-	if (t == NULL)
-		return 0;
-	if (compare_func(el, t->el) == 0)
-		return 1;
-
-	if (compare_func(el, t->el) < 0)
-		return hbb_tree_find_number(t->left, el, compare_func);
-	else
-		return hbb_tree_find_number(t->right, el, compare_func);
-}
-
-void hbb_tree_free(hbb_tree_node *t)
-{
-	if (t == NULL)
-		return;
-
-	hbb_tree_free(t->left);
-	hbb_tree_free(t->right);
-
-	hbb_tree_free_node(t);
-}
-
-#else /* non recursive */
-
-int hbb_tree_find_number(hbb_tree_node *t, void *el, int (*compare_func)(void *, void *))
-{
+	hbb_tree_node **cur = &t->root;
 	int found = 0;
-	while (t) {
-		if (compare_func(el, t->el) < 0)
-			t = t->left;
-		else if (compare_func(el, t->el) > 0)
-			t = t->right;
+	while (*cur) {
+		if (t->compare(el, (*cur)->el) < 0)
+			cur = &(*cur)->left;
+		else if (t->compare(el, (*cur)->el) > 0)
+			cur = &(*cur)->right;
 		else {
 			found = 1;
 			break;
@@ -151,38 +123,39 @@ int hbb_tree_find_number(hbb_tree_node *t, void *el, int (*compare_func)(void *,
 	return found;
 }
 
-void hbb_tree_insert(hbb_tree_node **t, void *el, size_t el_size, int (*compare_func)(void *, void *))
+void hbb_tree_insert(hbb_tree_traverser *t, void *el)
 {
-	while (*t) {
-		if (compare_func(el, (*t)->el) < 0)
-			t = &(*t)->left;
-		else if (compare_func(el, (*t)->el) > 0)
-			t = &(*t)->right;
+	hbb_tree_node **cur = &t->root;
+	while (*cur) {
+		if (t->compare(el, (*cur)->el) < 0)
+			cur = &(*cur)->left;
+		else if (t->compare(el, (*cur)->el) > 0)
+			cur = &(*cur)->right;
 		else
 			return;
 	}
 
-	hbb_tree_node *node = create_tree_node(el, el_size);
-	*t = node;
+	hbb_tree_node *node = create_tree_node(el, t->el_size);
+	*cur = node;
 }
 
-void hbb_tree_free(hbb_tree_node *t)
+void hbb_tree_free(hbb_tree_traverser *t)
 {
 	hbb_tree_node *prev;
-	hbb_tree_node *cur = t;
+	hbb_tree_node *cur = t->root;
 
-	while (t) {
+	while (t->root) {
 		while(cur->left)
 			cur = cur->left;
 
-		cur->left = t->right;
-		prev = t;
-		t = t->left;
+		cur->left = t->root->right;
+		prev = t->root;
+		t->root = t->root->left;
 
 		hbb_tree_free_node(prev);
 	}
+	free(t);
 }
 
-#endif /* HBB_TREE_RECURSIVE */
 #endif /* HBB_TREE_IMPLEMENTATION */
 #endif /* HBB_TREE_H */
