@@ -33,7 +33,7 @@ static hbb_tree_node *create_tree_node(void *el, size_t el_size)
 
 	node->el = malloc(el_size);
 	if (!node->el) {
-		fprintf(stderr, "%s: %d failed to malloc\n", __func__, __LINE__);
+		fprintf(stderr, "%s: failed to malloc\n", __func__);
 		exit(1);
 	}
 	memcpy(node->el, el, el_size);
@@ -52,6 +52,7 @@ static void hbb_tree_free_node(hbb_tree_node *n)
 hbb_tree_traverser *hbb_tree_create(compare_func compare, size_t el_size)
 {
 	hbb_tree_traverser *t = malloc(sizeof(hbb_tree_traverser));
+
 	t->compare = compare;
 	t->el_size = el_size;
 	t->root = NULL;
@@ -62,6 +63,7 @@ void hbb_tree_delete(hbb_tree_traverser *t, void *el)
 {
 	hbb_tree_node *parent = NULL;
 	hbb_tree_node *cur = t->root;
+
 	while (cur && t->compare(el, cur->el) != 0) {
 		parent = cur;
 		if (t->compare(el, cur->el) < 0)
@@ -124,6 +126,7 @@ void *hbb_tree_find(hbb_tree_traverser *t, void *el)
 void hbb_tree_insert(hbb_tree_traverser *t, void *el)
 {
 	hbb_tree_node **cur = &t->root;
+
 	while (*cur) {
 		if (t->compare(el, (*cur)->el) < 0)
 			cur = &(*cur)->left;
