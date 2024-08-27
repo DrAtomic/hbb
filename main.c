@@ -127,8 +127,9 @@ int main(void)
 		hbb_tree_insert(t, &arr[i]);
 
 	hbb_tree_delete(t, &arr[1]);
-	if (hbb_tree_find_number(t, &arr[0]))
-		printf("did find number!\n");
+	void *ret = hbb_tree_find(t, &arr[5]);
+	if (ret)
+		printf("did find number! %d\n", *(int*)ret);
 	// if (hbb_tree_find_number(t, &d))
 	// 	printf("did find number!\n");
 	// if (hbb_tree_find_number(t, &c))

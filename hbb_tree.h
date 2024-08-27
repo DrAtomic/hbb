@@ -21,7 +21,7 @@ typedef struct hbb_tree_traverser {
 
 hbb_tree_traverser *hbb_tree_create(compare_func compare, size_t el_size);
 void hbb_tree_insert(hbb_tree_traverser *t, void *el);
-int hbb_tree_find_number(hbb_tree_traverser *t, void *el);
+void *hbb_tree_find(hbb_tree_traverser *t, void *el);
 void hbb_tree_delete(hbb_tree_traverser *t, void *el);
 void hbb_tree_free(hbb_tree_traverser *t);
 
@@ -105,22 +105,20 @@ void hbb_tree_delete(hbb_tree_traverser *t, void *el)
 	}
 }
 
-int hbb_tree_find_number(hbb_tree_traverser *t, void *el)
+void *hbb_tree_find(hbb_tree_traverser *t, void *el)
 {
 	hbb_tree_node **cur = &t->root;
-	int found = 0;
+
 	while (*cur) {
 		if (t->compare(el, (*cur)->el) < 0)
 			cur = &(*cur)->left;
 		else if (t->compare(el, (*cur)->el) > 0)
 			cur = &(*cur)->right;
 		else {
-			found = 1;
-			break;
+			return (*cur)->el;
 		}
 	}
-
-	return found;
+	return NULL;
 }
 
 void hbb_tree_insert(hbb_tree_traverser *t, void *el)
