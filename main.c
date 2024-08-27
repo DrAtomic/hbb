@@ -8,7 +8,6 @@
 #include "hbb_list.h"
 
 #define HBB_TREE_IMPLEMENTATION
-#define HBB_TREE_RECURSIVE
 #include "hbb_tree.h"
 
 #define HBB_RBTREE_IMPLEMENTATION
@@ -21,19 +20,13 @@ hbb_node *create_persistant_list()
 {
 	hbb_node *l = {0};
 
-	int a = 1;
+	int arr[] = {1, 3, 4};
 	int b = 2;
-	int c = 3;
-	int d = 4;
 
-	hbb_list_push(&l, &c, sizeof(int));
+	for (size_t i = 0; i < 3; i++)
+		hbb_list_push(&l, &arr[i], sizeof(int));
+
 	hbb_list_append(&l, &b, sizeof(int));
-	hbb_list_push(&l, &d, sizeof(int));
-	hbb_list_push(&l, &c, sizeof(int));
-	hbb_list_push(&l, &c, sizeof(int));
-	hbb_list_push(&l, &c, sizeof(int));
-	hbb_list_push(&l, &a, sizeof(int));
-	hbb_list_push(&l, &a, sizeof(int));
 
 	return l;
 }
@@ -98,39 +91,41 @@ void hbb_rbtree_print(hbb_rbtree_node *t, size_t level)
 	printf("done\n");
 }
 
+#define NUM_ELMS(x) (sizeof(x) / sizeof(x[0]))
+
 int main(void)
 {
-	hbb_node *l = create_persistant_list();
+	// hbb_node *l = create_persistant_list();
 
-	hbb_list_print(l, print_int);
+	// hbb_list_print(l, print_int);
 
-	hbb_node *thing = hbb_list_pop(&l);
-	printf("\n");
-	printf("thing %d\n", *(int*)thing->el);
+	// hbb_node *thing = hbb_list_pop(&l);
+	// printf("\n");
+	// printf("thing %d\n", *(int*)thing->el);
 
-	hbb_list_print(l, print_int);
+	// hbb_list_print(l, print_int);
 
-	int x = 1;
-	int y = 3;
-	hbb_list_remove(&l, &y, int);
-	hbb_list_remove(&l, &x, int);
+	// int x = 1;
+	// int y = 3;
+	// hbb_list_remove(&l, &y, int);
+	// hbb_list_remove(&l, &x, int);
 
-	printf("\n");
-	hbb_list_print(l, print_int);
-	hbb_free_node(thing);
-	hbb_list_free(l);
+	// printf("\n");
+	// hbb_list_print(l, print_int);
+	// hbb_free_node(thing);
+	// hbb_list_free(l);
 
 	// tree testing
 	hbb_tree_node *t = {0};
 
-	int a = 15;
-	int b = 11;
-	int c = 24;
-	int d = 5;
-	int e = 19;
-	int f = 25;
-	int g = 6;
-	int h = 1;
+	int a = 12;
+	int b = 18;
+	int c = 5;
+	int d = 2;
+	int e = 9;
+	int f = 15;
+	int g = 19;
+	int h = 17;
 
 	hbb_tree_insert(&t, &a, sizeof(int), compare_int);
 	hbb_tree_insert(&t, &b, sizeof(int), compare_int);
@@ -139,7 +134,9 @@ int main(void)
 	hbb_tree_insert(&t, &e, sizeof(int), compare_int);
 	hbb_tree_insert(&t, &f, sizeof(int), compare_int);
 	hbb_tree_insert(&t, &g, sizeof(int), compare_int);
+	hbb_tree_insert(&t, &h, sizeof(int), compare_int);
 
+	hbb_tree_delete(t, &b, sizeof(int), compare_int);
 	if (hbb_tree_find_number(t, &a, compare_int))
 		printf("did find number!\n");
 	if (hbb_tree_find_number(t, &d, compare_int))
@@ -151,28 +148,12 @@ int main(void)
 	hbb_tree_print(t, 0);
 	hbb_tree_free(t);
 
-	int a_val = 12;
-	// a children
-	int b_val = 8;
-	int c_val = 15;
+	// int arr[] = {12, 8, 15, 5, 9, 13, 19, 8, 11};
+	// hbb_rbtree_node *rbt = {0};
+	// for (size_t i = 0; i < NUM_ELMS(arr); i++)
+	// 	hbb_rbtree_insert(&rbt, &arr[i], sizeof(int), compare_int);
 
-	// b children
-	int d_val = 5;
-	int e_val = 9;
-
-	// c childred
-	int f_val = 13;
-	int g_val = 19;
-	hbb_rbtree_node *rbt = {0};
-
-	hbb_rbtree_insert(&rbt, &a_val, sizeof(int), compare_int);
-	hbb_rbtree_insert(&rbt, &b_val, sizeof(int), compare_int);
-	hbb_rbtree_insert(&rbt, &c_val, sizeof(int), compare_int);
-	hbb_rbtree_insert(&rbt, &d_val, sizeof(int), compare_int);
-	hbb_rbtree_insert(&rbt, &e_val, sizeof(int), compare_int);
-	hbb_rbtree_insert(&rbt, &f_val, sizeof(int), compare_int);
-	hbb_rbtree_insert(&rbt, &g_val, sizeof(int), compare_int);
-	hbb_rbtree_print(rbt, 0);
-	hbb_rbtree_free(rbt);
+	// hbb_rbtree_print(rbt, 0);
+	// hbb_rbtree_free(rbt);
 	return 0;
 }
