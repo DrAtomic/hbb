@@ -61,60 +61,94 @@ hbb_tree_traverser *hbb_tree_create(compare_func compare, size_t el_size)
 
 void hbb_tree_delete(hbb_tree_traverser *t, void *el)
 {
-	hbb_tree_node *parent = NULL;
-	hbb_tree_node *cur = t->root;
+	hbb_tree_node **cur = &t->root;
+	hbb_tree_node **parent = NULL;
+	int comp = 0;
+	int dir = 0;
 
-	while (cur && t->compare(el, cur->el) != 0) {
-		parent = cur;
-		if (t->compare(el, cur->el) < 0)
-			cur = cur->left;
-		else
-			cur = cur->right;
+	while (*cur) {
+		comp = t->compare(el, (*cur)->el);
+		if (comp < 0) {
+			dir = comp;
+			parent = cur;
+			cur = &(*cur)->left;
+		} else if (comp > 0) {
+			dir = comp;
+			parent = cur;
+			cur = &(*cur)->right;
+		} else {
+			break;
+		}
 	}
 
-	if (cur == NULL)
+	if (*cur == NULL)
 		return;
 
-	// 0 or 1 child case
-	if (cur->left == NULL || cur->right == NULL) {
-		hbb_tree_node *new_child = NULL;
-		if (cur->left == NULL)
-			new_child = cur->right;
-		else
-			new_child = cur->left;
+	hbb_tree_node *del = *cur;
 
-		if (parent == NULL)
-			return;
+	if ((*cur)->left == NULL && (*cur)->right == NULL) {
 
-		if (cur == parent->left)
-			parent->left = new_child;
+		if (dir < 0)
+			(*parent)->left = NULL;
 		else
-			parent->right = new_child;
-		hbb_tree_free_node(cur);
-	} else {
-		hbb_tree_node *parent = NULL;
-		hbb_tree_node *del = cur->right;
-		while(del->left) {
-			parent = del;
-			del = del->left;
-		}
-		if (parent)
-			parent->left = del->right;
-		else
-			cur->right = del->right;
-		memcpy(cur->el, del->el, t->el_size);
-		hbb_tree_free_node(del);
+			(*parent)->right = NULL;
 	}
+
+	else if ((*cur)->left == NULL && (*cur)->right != NULL) {
+
+		if (dir < 0)
+			(*parent)->left = (*cur)->right;
+		else
+			(*parent)->right = (*cur)->right;
+	}
+
+	else if ((*cur)->left != NULL && (*cur)->right == NULL) {
+
+		if (dir < 0)
+			(*parent)->left = (*cur)->left;
+		else
+			(*parent)->right = (*cur)->left;
+	}
+
+	else if ((*cur)->left != NULL && (*cur)->right != NULL) {
+		hbb_tree_node *s = *cur;
+		hbb_tree_node *r = (*cur)->right;
+
+		if (r->left == NULL) {
+			r->left = (*cur)->left;
+			if (dir < 0)
+				(*parent)->left = r;
+			else
+				(*parent)->right = r;
+		} else {
+			s = s->right;
+			while (s->left != NULL)
+				s = s->left;
+
+			s->left = (*cur)->left;
+			r->left = s->right;
+			s->right = r;
+
+			if (dir < 0)
+				(*parent)->left = s;
+			else
+				(*parent)->right = s;
+		}
+	}
+
+	hbb_tree_free_node(del);
 }
 
 void *hbb_tree_find(hbb_tree_traverser *t, void *el)
 {
 	hbb_tree_node **cur = &t->root;
+	int comp = 0;
 
 	while (*cur) {
-		if (t->compare(el, (*cur)->el) < 0)
+		comp = t->compare(el, (*cur)->el);
+		if (comp < 0)
 			cur = &(*cur)->left;
-		else if (t->compare(el, (*cur)->el) > 0)
+		else if (comp > 0)
 			cur = &(*cur)->right;
 		else {
 			return (*cur)->el;
@@ -126,11 +160,13 @@ void *hbb_tree_find(hbb_tree_traverser *t, void *el)
 void hbb_tree_insert(hbb_tree_traverser *t, void *el)
 {
 	hbb_tree_node **cur = &t->root;
+	int comp = 0;
 
 	while (*cur) {
-		if (t->compare(el, (*cur)->el) < 0)
+		comp = t->compare(el, (*cur)->el);
+		if (comp < 0)
 			cur = &(*cur)->left;
-		else if (t->compare(el, (*cur)->el) > 0)
+		else if (comp > 0)
 			cur = &(*cur)->right;
 		else
 			return;
