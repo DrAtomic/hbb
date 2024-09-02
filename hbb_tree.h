@@ -59,6 +59,14 @@ hbb_tree_traverser *hbb_tree_create(compare_func compare, size_t el_size)
 	return t;
 }
 
+void transplant(hbb_tree_node **p, hbb_tree_node *t, int dir)
+{
+	if (dir < 0)
+		(*p)->left = t;
+	else
+		(*p)->right = t;
+}
+
 void hbb_tree_delete(hbb_tree_traverser *t, void *el)
 {
 	hbb_tree_node **cur = &t->root;
@@ -87,27 +95,15 @@ void hbb_tree_delete(hbb_tree_traverser *t, void *el)
 	hbb_tree_node *del = *cur;
 
 	if ((*cur)->left == NULL && (*cur)->right == NULL) {
-
-		if (dir < 0)
-			(*parent)->left = NULL;
-		else
-			(*parent)->right = NULL;
+		transplant(parent, NULL, dir);
 	}
 
 	else if ((*cur)->left == NULL && (*cur)->right != NULL) {
-
-		if (dir < 0)
-			(*parent)->left = (*cur)->right;
-		else
-			(*parent)->right = (*cur)->right;
+		transplant(parent, (*cur)->right, dir);
 	}
 
 	else if ((*cur)->left != NULL && (*cur)->right == NULL) {
-
-		if (dir < 0)
-			(*parent)->left = (*cur)->left;
-		else
-			(*parent)->right = (*cur)->left;
+		transplant(parent, (*cur)->left, dir);
 	}
 
 	else if ((*cur)->left != NULL && (*cur)->right != NULL) {
@@ -116,10 +112,7 @@ void hbb_tree_delete(hbb_tree_traverser *t, void *el)
 
 		if (r->left == NULL) {
 			r->left = (*cur)->left;
-			if (dir < 0)
-				(*parent)->left = r;
-			else
-				(*parent)->right = r;
+			transplant(parent, r, dir);
 		} else {
 			s = s->right;
 			while (s->left != NULL)
@@ -129,10 +122,7 @@ void hbb_tree_delete(hbb_tree_traverser *t, void *el)
 			r->left = s->right;
 			s->right = r;
 
-			if (dir < 0)
-				(*parent)->left = s;
-			else
-				(*parent)->right = s;
+			transplant(parent, s, dir);
 		}
 	}
 
