@@ -94,33 +94,22 @@ void hbb_tree_delete(hbb_tree_traverser *t, void *el)
 
 	hbb_tree_node *del = *cur;
 
-	if ((*cur)->left == NULL && (*cur)->right == NULL) {
-		transplant(parent, NULL, dir);
-	}
-
-	else if ((*cur)->left == NULL && (*cur)->right != NULL) {
-		transplant(parent, (*cur)->right, dir);
-	}
-
-	else if ((*cur)->left != NULL && (*cur)->right == NULL) {
+	if ((*cur)->right == NULL) {
 		transplant(parent, (*cur)->left, dir);
-	}
-
-	else if ((*cur)->left != NULL && (*cur)->right != NULL) {
-		hbb_tree_node *s = *cur;
+	} else {
 		hbb_tree_node *r = (*cur)->right;
-
 		if (r->left == NULL) {
 			r->left = (*cur)->left;
 			transplant(parent, r, dir);
 		} else {
+			hbb_tree_node *s = *cur;
 			s = s->right;
 			while (s->left != NULL)
 				s = s->left;
 
-			s->left = (*cur)->left;
 			r->left = s->right;
-			s->right = r;
+			s->left = (*cur)->left;
+			s->right = (*cur)->right;
 
 			transplant(parent, s, dir);
 		}
