@@ -38,6 +38,11 @@ static hbb_node *create_node(void *el, size_t el_size)
 {
 	hbb_node *node = malloc(sizeof(hbb_node));
 
+	if (!node) {
+		fprintf(stderr, "%s: %d failed to malloc\n", __func__, __LINE__);
+		exit(1);
+	}
+
 	node->el = malloc(el_size);
 	if (!node->el) {
 		fprintf(stderr, "%s: %d failed to malloc\n", __func__, __LINE__);
